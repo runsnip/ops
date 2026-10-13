@@ -53,6 +53,8 @@ has never seen runsnip is enough. No database port is published, nothing listens
 database's user, name and password are read inside its container from the container's own environment: no secret
 travels on a command line, over the wire or into a log.
 
+Releases carry Linux binaries; on a Mac, build it from a checkout: `go build -o ~/bin/runsnip .` (Go 1.26).
+
 1. **Find the stack on the server** — its compose folder (`docker compose ls` there shows it) and, if it runs more
    than one database, the service:
 
