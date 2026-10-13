@@ -343,7 +343,7 @@ function tagOf(image) { if (!image) return "–"; const i = image.lastIndexOf(":
 
 async function stackPage(name, tab) {
   stopLive();
-  const tabs = [["", "Overview", "overview"], ["graph", "Graph", "graph"], ["logs", "Logs", "logs"], ["env", ".env", "env"], ["jobs", "Jobs", "jobs"]];
+  const tabs = [["", "Overview", "overview"], ["graph", "Graph", "graph"], ["logs", "Logs", "logs"], ["env", ".env", "env"], ["backups", "Backups", "backup"], ["jobs", "Jobs", "jobs"]];
   const slot = el("div");
   const body = el("div");
   const actions = el("div", { class: "row" },
@@ -367,6 +367,7 @@ async function stackPage(name, tab) {
   else if (tab === "logs") logsTab(name, body);
   else if (tab === "env") envTab(name, body, slot);
   else if (tab === "jobs") jobsList(body, name);
+  else if (tab === "backups") backupsTab(name, body, slot);
   else if (tab === "graph") import("/graph.js").then((m) => m.render({ name, body, slot, el, icon, api, act, ask, pill, stateIcon, setLive: (x) => { (live = live || []).push(x); } }))
     .catch((e) => body.replaceChildren(errorBox(e)));
 }
@@ -441,6 +442,40 @@ function logsTab(name, body) {
   snap.onmessage = (m) => { snap.close(); for (const s of JSON.parse(m.data).services || []) if (!s.Off) sel.append(el("option", { value: s.Name, text: s.Name })); };
   (live = live || []).push(snap);
   body.replaceChildren(el("section", { class: "panel" }, el("div", { class: "row" }, sel, btn, filter), pre));
+}
+
+// ───────────────────────── backups ─────────────────────────
+
+const size = (n) => { const u = ["B", "KiB", "MiB", "GiB", "TiB"]; let i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return `${n.toFixed(i ? 1 : 0)} ${u[i]}`; };
+
+// backupsTab lists the backup folder. Download asks the server for a one-time link (re-authenticating when the
+// session is not fresh), then the browser saves the file; the server records it in the audit log.
+async function backupsTab(name, body, slot) {
+  const rows = el("tbody");
+  const msg = el("p", { class: "muted wrap" });
+  const load = async () => {
+    try {
+      const j = await api("GET", `/api/stacks/${encodeURIComponent(name)}/backups`);
+      msg.textContent = j.backups.length ? `${j.backups.length} file(s) in ${j.dir}. Copy them off this server.` : `No backup in ${j.dir} yet.`;
+      rows.replaceChildren(...j.backups.map((b) => el("tr", {}, el("td", { text: b.name }), el("td", { class: "num", text: size(b.size) }), el("td", { text: when(b.time), title: ago(b.time) }),
+        el("td", { class: "act" }, el("button", { type: "button", icon: "updates", text: "Download", onclick: (e) => download(b.name, e.currentTarget) })))));
+    } catch (e) { msg.replaceChildren(errorBox(e)); }
+  };
+  const download = async (file, btn) => {
+    btn.disabled = true;
+    try {
+      const j = await api("POST", `/api/stacks/${encodeURIComponent(name)}/backups/ticket`, { file });
+      const a = el("a", { href: j.url, download: file, hidden: true });
+      document.body.append(a); a.click(); a.remove();
+    } catch (e) { slot.replaceChildren(errorBox(e)); }
+    finally { btn.disabled = false; }
+  };
+  body.replaceChildren(el("section", { class: "panel" },
+    el("div", { class: "row spread" }, el("h2", { text: "Backups" }),
+      el("button", { type: "button", icon: "backup", text: "Back up now", onclick: async () => { await act(slot, name, ["backup"]); load(); } })),
+    msg, el("div", { class: "scroll" }, el("table", {}, el("thead", {}, el("tr", {}, ["File", "Size", "Made", ""].map((h) => el("th", { text: h })))), rows)),
+    el("p", { class: "muted", text: "Downloading asks you to confirm it is you when you signed in more than a few minutes ago. Each download is written to the audit log." })));
+  load();
 }
 
 // ───────────────────────── .env ─────────────────────────

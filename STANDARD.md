@@ -90,7 +90,7 @@ single quotes.
 | Rule | | Why |
 |---|---|---|
 | `data-dir` — Data lives under `${DATA_DIR:-/srv/<compose name>}` (bind mounts and the tool alike); the checkout holds no data. Override: `data_dir:`. | default | A checkout can be deleted and cloned again; the data disk can be a mounted volume. |
-| `backups` — `runsnip backup` writes each target gzipped, mode 600, into `<data>/backups`, then keeps the newest `BACKUP_KEEP` (10; 0 keeps all) of each. The default target is `pg_dump` of the service running a postgres image, as `POSTGRES_USER` on `POSTGRES_DB`. Other targets: `pg_dumpall`, or `exec` (any command in a container; its output is saved unless `save: false`; `{stamp}` is the backup's time). Backups a stack kept in `<stack>/backups` before are pruned under the same rule. Override: `backup:`, `postgres:`. | default | Backups exist without setup, and they do not fill the disk. |
+| `backups` — `runsnip backup` writes each target gzipped, mode 600, into `<data>/backups`, then keeps the newest `BACKUP_KEEP` (10; 0 keeps all) of each. The default target is `pg_dump` of the service running a postgres image, as `POSTGRES_USER` on `POSTGRES_DB`. Other targets: `pg_dumpall`, or `exec` (any command in a container; its output is saved unless `save: false`; `{stamp}` is the backup's time). Backups a stack kept in `<stack>/backups` before are pruned under the same rule. Override: `backup:`, `postgres:`. `runsnip db pull` (on the operator's machine, over SSH) finds the same database from the compose labels; `database: {service, kind}` names it when the image does not (kind: postgres, mysql, mariadb). | default | Backups exist without setup, and they do not fill the disk. |
 
 ## 8. Proxies and the request shield
 

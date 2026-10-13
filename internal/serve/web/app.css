@@ -20,6 +20,7 @@ h1 { margin: 0; font: 700 18px Orbitron, Inter, sans-serif; letter-spacing: .04e
 h1 .brand { color: var(--brand); }
 h2 { margin: 0 0 8px; font: 700 13px Orbitron, Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
 main { padding: 16px 16px 96px; display: grid; gap: 16px; max-width: 1200px; margin: 0 auto; }
+main > * { min-width: 0; } /* a wide table scrolls inside its panel, never the page */
 .muted { color: var(--muted); }
 .bad { color: var(--bad); }
 .cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
@@ -175,3 +176,4 @@ label.inline { display: inline-flex; gap: 6px; align-items: center; font-weight:
 .gitem .row { margin: 0; }
 @media (prefers-color-scheme: dark) { .e-calls { stroke: #a78bfa; } .ah-calls { fill: #a78bfa; } }
 .gcanvas.hide-route .e-route, .gcanvas.hide-depends .e-depends, .gcanvas.hide-calls .e-calls, .gcanvas.hide-data .e-data { display: none; }
+.wrap { overflow-wrap: anywhere; }

@@ -103,6 +103,24 @@
       "description": "Where data lives (default ${DATA_DIR:-/srv/\u003ccompose name\u003e}).",
       "type": "string"
     },
+    "database": {
+      "additionalProperties": false,
+      "description": "The database `runsnip db pull|tunnel|restore` reach from the operator's machine, when its image does not say it: the service and the engine (postgres, mysql, mariadb).",
+      "properties": {
+        "kind": {
+          "enum": [
+            "postgres",
+            "mysql",
+            "mariadb"
+          ],
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "doctor": {
       "additionalProperties": false,
       "description": "The stack's own doctor sections (typed checks), and standard sections to skip.",

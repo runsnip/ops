@@ -131,6 +131,7 @@ type Server struct {
 	mux      *http.ServeMux
 	samplers *samplers
 	cer      *ceremonies
+	tickets  tickets
 	Now      func() time.Time
 }
 
@@ -178,6 +179,9 @@ func New(env Env, o Options) *Server {
 	m.HandleFunc("PUT /api/stacks/{name}/layout", s.need(signedIn, s.putLayout))
 	m.HandleFunc("DELETE /api/stacks/{name}/layout", s.need(signedIn, s.deleteLayout))
 	m.HandleFunc("POST /api/stacks/{name}/env/reveal", s.need(fresh, s.envReveal))
+	m.HandleFunc("GET /api/stacks/{name}/backups", s.need(signedIn, s.listBackups))
+	m.HandleFunc("POST /api/stacks/{name}/backups/ticket", s.need(fresh, s.backupTicket))
+	m.HandleFunc("GET /api/stacks/{name}/backups/download", s.need(signedIn, s.downloadBackup))
 	m.HandleFunc("POST /api/paths/check", s.need(signedIn, s.checkPaths))
 	m.HandleFunc("POST /api/jobs", s.need(signedIn, s.startJob))
 	m.HandleFunc("GET /api/jobs", s.need(signedIn, s.listJobs))

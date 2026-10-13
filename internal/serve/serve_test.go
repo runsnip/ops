@@ -366,3 +366,88 @@ func TestSessionsSurviveARestart(t *testing.T) {
 }
 
 func mustURL(s string) *url.URL { u, _ := url.Parse(s); return u }
+
+// A backup leaves the server only through a one-time ticket that a fresh session asked for, and only a file of
+// the stack's backup folder; the download is audited.
+func TestBackupDownload(t *testing.T) {
+	s, c := newServer(t, Options{})
+	sc, _ := s.Auth.SetupCode(time.Hour)
+	_, out := c.do("POST", "/api/setup", map[string]string{"code": sc, "name": "ops"})
+	c.csrf = out["csrf"].(string)
+	_, tb := c.do("POST", "/api/totp/begin", nil)
+	if code, _ := c.do("POST", "/api/totp/confirm", map[string]string{"code": auth.TOTPAt(tb["secret"].(string), uint64(time.Now().Unix()/30))}); code != 200 {
+		t.Fatal("confirm")
+	}
+	dir := t.TempDir()
+	os.WriteFile(dir+"/compose.yaml", []byte("services:\n  db:\n    image: postgres:16\n"), 0o644)
+	os.WriteFile(dir+"/stack.yaml", []byte("standard: 1\nbackup:\n  dir: "+dir+"/b\n"), 0o644)
+	os.MkdirAll(dir+"/b", 0o700)
+	os.WriteFile(dir+"/b/db-20261013-000000.sql.gz", []byte("DUMP BYTES"), 0o600)
+	os.WriteFile(dir+"/b/db-20261013-010000.sql.gz.part", []byte("half"), 0o600)
+	os.WriteFile(dir+"/secret.txt", []byte("no"), 0o600)
+	if err := host.Register(s.Env.State, host.StackEntry{Name: "demo", Dir: dir}); err != nil {
+		t.Fatal(err)
+	}
+	code, out := c.do("GET", "/api/stacks/demo/backups", nil)
+	rows, _ := out["backups"].([]any)
+	if code != 200 || len(rows) != 1 || rows[0].(map[string]any)["name"] != "db-20261013-000000.sql.gz" {
+		t.Fatalf("%d %v (a .part is not a backup)", code, out)
+	}
+	// Not fresh: re-authenticate first.
+	s.Now = func() time.Time { return time.Now().Add(10 * time.Minute) }
+	s.Sessions.Now = s.Now
+	if code, _ := c.do("POST", "/api/stacks/demo/backups/ticket", map[string]string{"file": "db-20261013-000000.sql.gz"}); code != http.StatusPreconditionRequired {
+		t.Fatalf("not fresh: %d", code)
+	}
+	if code, _ := c.do("POST", "/api/reauth/totp", map[string]string{"code": auth.TOTPAt(tb["secret"].(string), uint64(time.Now().Unix()/30)+1)}); code != 200 {
+		t.Fatal("reauth")
+	}
+	for _, bad := range []string{"../secret.txt", "secret.txt", "db-20261013-010000.sql.gz.part", "", "/etc/passwd"} {
+		if code, _ := c.do("POST", "/api/stacks/demo/backups/ticket", map[string]string{"file": bad}); code != 404 {
+			t.Fatalf("%q: %d", bad, code)
+		}
+	}
+	// Without the CSRF token, no ticket.
+	if code, _ := c.do("POST", "/api/stacks/demo/backups/ticket", map[string]string{"file": "db-20261013-000000.sql.gz"}, "X-CSRF-Token", "x"); code != 403 {
+		t.Fatalf("CSRF: %d", code)
+	}
+	code, out = c.do("POST", "/api/stacks/demo/backups/ticket", map[string]string{"file": "db-20261013-000000.sql.gz"})
+	if code != 200 {
+		t.Fatalf("%d %v", code, out)
+	}
+	link := out["url"].(string)
+	// Another stack's path with this ticket: refused, and the ticket is spent.
+	if code, _ := c.do("GET", strings.Replace(link, "/demo/", "/other/", 1), nil); code != 403 {
+		t.Fatalf("other stack: %d", code)
+	}
+	code, out = c.do("POST", "/api/stacks/demo/backups/ticket", map[string]string{"file": "db-20261013-000000.sql.gz"})
+	link = out["url"].(string)
+	req, _ := http.NewRequest("GET", c.base+link, nil)
+	rs, err := c.http.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := io.ReadAll(rs.Body)
+	rs.Body.Close()
+	if rs.StatusCode != 200 || string(b) != "DUMP BYTES" || !strings.Contains(rs.Header.Get("Content-Disposition"), `attachment; filename="db-20261013-000000.sql.gz"`) {
+		t.Fatalf("%d %q %v", rs.StatusCode, b, rs.Header)
+	}
+	// Once only.
+	if code, _ := c.do("GET", link, nil); code != 403 {
+		t.Fatalf("a spent ticket: %d", code)
+	}
+	// Another session cannot use a ticket.
+	code, out = c.do("POST", "/api/stacks/demo/backups/ticket", map[string]string{"file": "db-20261013-000000.sql.gz"})
+	jar2, _ := cookiejarNew()
+	other := &http.Client{Jar: jar2, Transport: c.http.Transport}
+	rs, _ = other.Get(c.base + out["url"].(string))
+	if rs.StatusCode != 401 {
+		t.Fatalf("no session: %d", rs.StatusCode)
+	}
+	audit, _ := os.ReadFile(s.Env.State + "/audit.log")
+	if !strings.Contains(string(audit), `"event":"backup.download"`) || !strings.Contains(string(audit), `"complete":true`) || !strings.Contains(string(audit), `"event":"backup.download.refused"`) {
+		t.Fatalf("audit: %s", audit)
+	}
+}
+
+func cookiejarNew() (http.CookieJar, error) { return cookiejar.New(nil) }

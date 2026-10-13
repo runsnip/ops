@@ -195,6 +195,9 @@ func (s *Stack) Backups() ([]Backup, error) {
 	}
 	var out []Backup
 	for _, e := range entries {
+		if strings.HasSuffix(e.Name(), ".part") {
+			continue // a backup being written, or one that failed
+		}
 		if info, err := e.Info(); err == nil && !e.IsDir() {
 			out = append(out, Backup{Name: e.Name(), Size: info.Size(), Time: info.ModTime()})
 		}
@@ -231,8 +234,10 @@ func (s *Stack) RunBackup(ctx context.Context, out io.Writer, now time.Time) ([]
 			}
 			continue
 		}
+		// Written as .part and renamed once the dump ended well and is on disk: a file under its name is whole.
 		name := filepath.Join(dir, t.Name+"-"+stamp+ext)
-		f, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
+		part := name + ".part"
+		f, err := os.OpenFile(part, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o600)
 		if err != nil {
 			return saved, err
 		}
@@ -242,11 +247,17 @@ func (s *Stack) RunBackup(ctx context.Context, out io.Writer, now time.Time) ([]
 		if cerr := gz.Close(); err == nil {
 			err = cerr
 		}
+		if serr := f.Sync(); err == nil {
+			err = serr
+		}
 		if cerr := f.Close(); err == nil {
 			err = cerr
 		}
+		if err == nil {
+			err = os.Rename(part, name)
+		}
 		if err != nil {
-			os.Remove(name)
+			os.Remove(part)
 			return saved, fmt.Errorf("%s: %v %s", t.Name, err, strings.TrimSpace(errb.String()))
 		}
 		if st, err := os.Stat(name); err == nil {
@@ -327,7 +338,7 @@ func prune(dir, prefix string, keep int) int {
 	}
 	var fs []f
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasPrefix(e.Name(), prefix) {
+		if e.IsDir() || !strings.HasPrefix(e.Name(), prefix) || strings.HasSuffix(e.Name(), ".part") {
 			continue
 		}
 		if info, err := e.Info(); err == nil {

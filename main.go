@@ -74,6 +74,13 @@ Operate
   runsnip backup                  back up the database (and the stack's other targets), keep the newest N
   runsnip prune                   remove unused images and build cache
 %s
+On your own machine (the server needs only sshd and docker)
+  runsnip db pull <ssh-target> [--compose DIR|--stack NAME] [--service S] [-o FILE]
+                                  a verified dump of the server's database, streamed over SSH (runsnip db help)
+  runsnip db tunnel <ssh-target>  127.0.0.1:N here → the database, nothing published on the server
+  runsnip db restore <file> --into <container>   into a local container, every table's rows compared
+  runsnip db verify <file>        a dump against its sidecar
+
 Install
   runsnip graph [--json]          the stack as nodes and edges: hostnames → proxies → services → data, outside hosts
   runsnip shield snippet          the Caddy snippet that puts the request shield in front of the sites (SHIELD=on)
@@ -178,6 +185,8 @@ func run1(ctx context.Context, args []string, out io.Writer) (int, error) {
 		return 0, serve.Main(ctx, serve.Env{State: g.state, Version: version, Exe: selfExe()}, args, out)
 	case "adopt":
 		return 0, adopt(args, out)
+	case "db":
+		return dbCmd(ctx, g, args, out)
 	}
 	switch cmd {
 	case "stack":

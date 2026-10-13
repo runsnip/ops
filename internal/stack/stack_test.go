@@ -3,6 +3,7 @@ package stack
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -222,6 +223,21 @@ func TestBackupDumpsGzipsAndKeepsTheNewest(t *testing.T) {
 	}
 	if st, _ := os.Stat(saved[0]); st.Mode().Perm() != 0o600 {
 		t.Fatal("a dump is readable by its owner only")
+	}
+}
+
+// A dump that fails half way leaves nothing under a backup's name, and no .part either.
+func TestAFailedBackupLeavesNoFile(t *testing.T) {
+	s, f := newStack(t, "standard: 1\nbackup:\n  dir: backups\n", "POSTGRES_USER=u\nPOSTGRES_DB=d\n")
+	f.Rules = append([]run.Rule{{Match: "pg_dump -U u d", Fn: func(c run.Call) (string, error) {
+		return "-- half a dump\nCOPY public.t (id) FROM stdin;\n1\n", errors.New("exit status 1")
+	}}}, f.Rules...)
+	var out bytes.Buffer
+	if _, err := s.RunBackup(context.Background(), &out, time.Now()); err == nil {
+		t.Fatal("a failed dump is an error")
+	}
+	if left, _ := os.ReadDir(filepath.Join(s.Dir, "backups")); len(left) != 0 {
+		t.Fatalf("left %v", left)
 	}
 }
 

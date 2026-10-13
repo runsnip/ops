@@ -41,6 +41,7 @@ type Stack struct {
 	Proxies    []string           `yaml:"proxies,omitempty"`
 	Graph      *Graph             `yaml:"graph,omitempty"`
 	Postgres   *Postgres          `yaml:"postgres,omitempty"`
+	Database   *Database          `yaml:"database,omitempty"`
 	Registry   Registry           `yaml:"registry,omitempty"`
 	Start      Start              `yaml:"start,omitempty"`
 	Backup     Backup             `yaml:"backup,omitempty"`
@@ -113,6 +114,14 @@ type Postgres struct {
 	PoolEnv string `yaml:"pool_env,omitempty"`
 	URLEnv  string `yaml:"url_env,omitempty"`
 	Reserve string `yaml:"reserve,omitempty"`
+}
+
+// Database names the stack's database for `runsnip db` (pull, tunnel, restore) when its image does not say it: the
+// service, and the engine (postgres, mysql or mariadb). Without it, the service running a postgres, mysql or mariadb
+// image is the database (postgres.service when set).
+type Database struct {
+	Service string `yaml:"service,omitempty"`
+	Kind    string `yaml:"kind,omitempty"`
 }
 
 // Registry is where the images come from.

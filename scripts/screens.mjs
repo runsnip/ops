@@ -5,6 +5,7 @@
 // Builds runsnip, starts `runsnip serve` on a fresh state folder with the stack registered, creates the first admin
 // through the API (setup code → TOTP), then opens the stack's Graph tab: at 1280×800 the canvas shows one box per
 // node of `runsnip graph --json`; at 390×844 the canvas is hidden and the same nodes are a list grouped by layer.
+// Then the Backups tab at both widths: Download saves the backup and the audit log records it.
 import { execFileSync, spawn } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { createRequire } from "node:module";
@@ -27,7 +28,15 @@ execFileSync("go", ["build", "-o", bin, "."], { cwd: root, stdio: "inherit" });
 const state = path.join(tmp, "state");
 fs.mkdirSync(state, { mode: 0o700 });
 const name = path.basename(stackDir);
-fs.writeFileSync(path.join(state, "stacks.json"), JSON.stringify([{ name, dir: stackDir, data: path.join(tmp, "data"), added: new Date().toISOString() }]));
+// A copy of the stack with one backup in its folder, for the Backups tab's Download.
+const stackCopy = path.join(tmp, name);
+fs.cpSync(stackDir, stackCopy, { recursive: true });
+const backups = path.join(tmp, "backups");
+fs.mkdirSync(backups, { mode: 0o700 });
+fs.appendFileSync(path.join(stackCopy, "stack.yaml"), `\nbackup:\n  dir: ${backups}\n`);
+const backupName = "db-20261013-000000.sql.gz", backupBody = "a backup's bytes\n";
+fs.writeFileSync(path.join(backups, backupName), backupBody, { mode: 0o600 });
+fs.writeFileSync(path.join(state, "stacks.json"), JSON.stringify([{ name, dir: stackCopy, data: path.join(tmp, "data"), added: new Date().toISOString() }]));
 const env = { ...process.env, RUNSNIP_STATE: state };
 const graph = JSON.parse(execFileSync(bin, ["--stack", name, "graph", "--json"], { env }).toString());
 const code = /Setup code: (\S+)/.exec(execFileSync(bin, ["admin", "setup-code"], { env }).toString())[1];
@@ -73,11 +82,20 @@ try {
       const sw = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1);
       check(sw, `${label}: no horizontal scroll`);
     }
-    check(errors.length === 0, `${label}: no script errors${errors.length ? ": " + errors.join("; ") : ""}`);
     await page.screenshot({ path: path.join(out, `graph-${name}-${label}.png`), fullPage: label === "phone" });
+    // Backups: the list, then Download (the session is fresh: no re-authentication asked) saves the file.
+    await page.goto(`${base}/#/s/${name}/backups`);
+    await page.getByText(backupName).waitFor();
+    if (label === "phone") check(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${label}: Backups has no horizontal scroll`);
+    const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "Download" }).click()]);
+    check(dl.suggestedFilename() === backupName && fs.readFileSync(await dl.path(), "utf8") === backupBody, `${label}: Download saves ${backupName} as it is on the server`);
+    await page.screenshot({ path: path.join(out, `backups-${name}-${label}.png`), fullPage: label === "phone" });
+    check(errors.length === 0, `${label}: no script errors${errors.length ? ": " + errors.join("; ") : ""}`);
     await ctx.close();
   }
   await browser.close();
+  const audit = fs.readFileSync(path.join(state, "audit.log"), "utf8");
+  check((audit.match(/"event":"backup.download"/g) || []).length === 2 && audit.includes('"complete":true'), "every download is in the audit log");
   const web = path.join(root, "internal/serve/web");
   const size = (f) => fs.statSync(path.join(web, f)).size;
   console.log(`bytes: graph.js ${size("graph.js")}, icons.svg ${size("icons.svg")}, app.js ${size("app.js")}, app.css ${size("app.css")} → ${out}`);

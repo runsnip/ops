@@ -45,6 +45,84 @@ runsnip doctor
 The stack folder is `RUNSNIP_HOME`, else the folder holding the program (`bin/..`), else the current one;
 `RUNSNIP_COMPOSE_FILE` and `RUNSNIP_ENV_FILE` point at other files.
 
+## Back up a server you're about to upgrade
+
+Before anything on a server changes, take its database to your own machine and prove the copy is whole. `runsnip db`
+runs **on your machine** and needs nothing on the server but `sshd` and `docker` — an existing compose stack that
+has never seen runsnip is enough. No database port is published, nothing listens inside a container, and the
+database's user, name and password are read inside its container from the container's own environment: no secret
+travels on a command line, over the wire or into a log.
+
+1. **Find the stack on the server** — its compose folder (`docker compose ls` there shows it) and, if it runs more
+   than one database, the service:
+
+   ```bash
+   ssh my-server 'docker compose ls'          # NAME, STATUS, CONFIG FILES → the folder
+   ```
+
+2. **Pull a verified dump** (PostgreSQL: `pg_dump -Fc`; MySQL/MariaDB: `mysqldump --single-transaction`, gzipped):
+
+   ```bash
+   runsnip db pull my-server --compose /opt/oldstack -o ~/backups/oldstack-before-upgrade.dump
+   ```
+
+   The dump streams over SSH (your keys, agent, `known_hosts` and `~/.ssh/config`; one authentication) into
+   `<file>.part`. The exit status of every hop is checked; then the file is read back whole (`pg_restore --list`
+   and a full `pg_restore -f -`, in a throwaway `postgres:<version>-alpine` container when the tools are not
+   installed) and **every table's rows are counted in the dump** and compared with exact `count(*)`s taken on the
+   server just before and just after the dump. Only then does `<file>` appear, with `<file>.json`: server, stack,
+   database, size, sha256, times, server and `pg_dump` versions, the server's and the dump's counts. A cut stream, a
+   failed dump or a count that differs leaves no file under that name (`<file>.failed` and the reason). A table
+   written to during the dump is flagged: stop the application (not the database) for the final backup.
+   `--keep-remote` also keeps the dump on the server (mode 600, the two sha256 compared); `--sudo` runs docker
+   through `sudo -n` for a user outside the docker group; `--stack NAME` picks a compose project (or a runsnip stack)
+   by name; `--service`, `--container` and `--kind` settle anything ambiguous, as does `database: {service, kind}`
+   in the stack's `stack.yaml`.
+
+3. **Copy the files the database points at** (uploads on the data disk) the same way, over SSH:
+
+   ```bash
+   rsync -aH --partial --stats my-server:/srv/oldstack/ ~/backups/oldstack-data/
+   ```
+
+4. **Rehearse the restore** into a throwaway local container; every table's rows are compared with the dump's:
+
+   ```bash
+   runsnip db restore ~/backups/oldstack-before-upgrade.dump --into rehearsal     # prints how to connect
+   runsnip db verify ~/backups/oldstack-before-upgrade.dump                        # the file against its sidecar, any time later
+   ```
+
+   `--into` an existing local container restores into a new database there (`--db NAME`; `--clean` drops an
+   existing one — local containers only). Restoring on a server needs `--to-server <ssh-target> --db <new name>
+   --yes-i-am-sure`, and only ever creates a database that does not exist yet.
+
+5. **Look at the live database from a desktop client** while you work, through SSH only:
+
+   ```bash
+   runsnip db tunnel my-server --compose /opt/oldstack        # 127.0.0.1:15432 here → the database container
+   ```
+
+   It forwards to the container's address on its docker network; `--via sidecar` instead carries each connection to
+   a short-lived `socat` container sharing the database container's network namespace (for internal networks, or an
+   sshd that forbids forwarding). It binds 127.0.0.1 only, prints how to connect, and Ctrl-C closes it.
+
+`RUNSNIP_SSH` replaces `ssh` (for example `RUNSNIP_SSH="ssh -F ./ssh_config"`), like `GIT_SSH_COMMAND`. On the
+server itself, `runsnip backup` writes the same kind of dump into `<data>/backups` (a `.part` until complete), and
+the web page's **Backups** tab downloads one — after a fresh passkey or TOTP confirmation, through a one-time link,
+recorded in the audit log.
+
+| Command | |
+|---|---|
+| `runsnip db pull <ssh-target>\|--local [--compose DIR\|--stack NAME] [--service S] [-o FILE] [--keep-remote] [--count-tables N]` | a verified dump and its sidecar |
+| `runsnip db tunnel <ssh-target> [--local-port N] [--via ip\|sidecar]` | 127.0.0.1:N → the database, nothing published |
+| `runsnip db restore <file> --into <container> [--db NAME] [--clean]` · `--to-server <ssh-target> --db NEW --yes-i-am-sure` | restore, every table's rows compared |
+| `runsnip db verify <file>` | sha256, read whole, rows per table, against the sidecar |
+
+Measured on a development machine (macOS, Docker Desktop, host load 10–27 from other work), fake server = an
+Alpine container with sshd and the docker CLI: a PostgreSQL 16 database of 9 tables, 49.6 MiB on disk, pulled,
+verified and written in 8.3 s (21.9 MiB dump); restored and compared in a throwaway container in about 3 s of
+transfer. `scripts/e2e-db.sh` repeats it all (below).
+
 ## A server with several stacks, and the web page
 
 `install.sh` (attached to every release) installs `/usr/local/bin/runsnip` after checking it against the release's
@@ -107,7 +185,7 @@ work — the CPU figure is an upper bound.
 adjust it. The page's Graph tab draws the same JSON (pan, zoom, drag — positions kept per stack in the state folder,
 "Reset layout" forgets them —, a side panel with details, logs, restart and pin through jobs, upstream/downstream on
 hover, failing nodes and the edges into them in red); on a phone it is a list grouped by layer.
-`scripts/screens.mjs` checks and photographs both widths.
+`scripts/screens.mjs` checks and photographs both widths, and downloads a backup from the Backups tab.
 
 ### Icons
 
@@ -134,10 +212,13 @@ without the block has none. Its operator runs the shield; runsnip never installs
 go test ./...                 # every package; the doctor, stack and TUI against a fake docker (internal/run.Fake)
 go test ./schema -update      # after changing internal/def: regenerate schema/stack.v1.json (a test fails while stale)
 go run . validate ../         # a stack folder against the standard
+scripts/e2e-db.sh             # runsnip db end to end: a fake server (sshd + docker in a container) with a PostgreSQL
+                              # and a MariaDB stack — pull, cut streams, keep-remote, sudo, restore with content
+                              # hashes compared, the strict server restore, both tunnels (46 checks)
 ```
 
 Layout: `main.go` (commands) · `internal/def` (stack.yaml) · `internal/compose` (reads compose files without docker)
-· `internal/stack` (operations) · `internal/doctor` (the framework and its check types) · `internal/keygen`
+· `internal/stack` (operations) · `internal/dbx` (`runsnip db`: pull, verify, restore, tunnel) · `internal/doctor` (the framework and its check types) · `internal/keygen`
 (`env generate`) · `internal/envform` (`env combine`, the Env tab) · `internal/shield` (the Caddy snippet) · `internal/release`
 (`runsnip build`) · `internal/standard` (rules, `validate`, `adopt`) · `internal/tui` · `internal/serve` (the page,
 `web/`) · `internal/graph` · `internal/auth` · `internal/jobs` · `internal/paths` · `internal/dockerapi` · `schema/` ·
@@ -149,4 +230,4 @@ runs the whole tool on a synthetic stack in testdata and on any stack given as
 `RUNSNIP_FIXTURES=name=<stack folder>@<expectations.json>[:…]` — other projects' stacks and expectations stay in
 those projects.
 
-The repository is private, like every repository under runsnip/.
+The repository is public, under the Apache License 2.0 (LICENSE, NOTICE).
