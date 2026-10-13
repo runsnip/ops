@@ -157,7 +157,7 @@ func (d Docker) Cmd(args ...string) string {
 	return Join(append(w, args...)...)
 }
 
-// Exec is a script run by sh inside a container (stdin attached when in is true).
+// Exec is a script run by sh inside a container, with stdin attached (nil stdin reads nothing).
 func (d Docker) Exec(container, script string) string {
 	return d.Cmd("exec", "-i", container, "sh", "-c", script)
 }
