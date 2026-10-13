@@ -1,0 +1,43 @@
+# Example App — the settings this stack reads.
+#
+# Copy to .env and fill it in. Never commit .env.
+
+# ---- image -------------------------------------------------------------------
+# Lower-case registry account.
+REGISTRY=
+# 'latest' is the newest; pin a version (1.2.3) to stay on it.
+WEB_TAG=
+API_TAG=
+
+# ---- domains -----------------------------------------------------------------
+# The app's own hostname.
+APP_HOST=
+# Optional: a second hostname for previews.
+# PREVIEW_HOST=preview.example.test
+
+# ---- database ----------------------------------------------------------------
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+
+# ---- secrets -----------------------------------------------------------------
+# openssl rand -hex 32
+SESSION_SECRET=
+# A quoted value with spaces and a hash inside.
+GREETING=
+SINGLE=
+
+# ---- knobs -------------------------------------------------------------------
+# Prose, not variables — two or more spaces after the #:
+#   LOG_FORMAT=PRETTY   LOG_COLOR=ansi
+#  INDENTED=prose
+# LOG_LEVEL=info
+#LOG_COLOR=auto
+# MAIL_PORT=587          # 465 with TLS
+# MAIL_HOST=
+
+# ---- duplicated on purpose -----------------------------------------------------
+WORKERS=
+WORKERS=4
+# FEATURE_X=on
+FEATURE_X=

@@ -1,0 +1,173 @@
+{
+  "package": "@runsnip/icons",
+  "version": "0.4.0",
+  "out": "../../internal/serve/web/icons.svg",
+  "comment": "Each entry: the name the page and `runsnip graph` use → the @runsnip/icons file it is drawn from. An entry may carry placeholder: true while the set lacks the right drawing (generate.mjs warns).",
+  "icons": {
+    "ok": {
+      "icon": "circle-check"
+    },
+    "warn": {
+      "icon": "triangle-alert"
+    },
+    "fail": {
+      "icon": "octagon-x"
+    },
+    "off": {
+      "icon": "ban"
+    },
+    "unknown": {
+      "icon": "help-circle"
+    },
+    "measuring": {
+      "icon": "clock"
+    },
+    "running": {
+      "icon": "spinner"
+    },
+    "deploy": {
+      "icon": "cloud-deploy"
+    },
+    "restart": {
+      "icon": "refresh-cw"
+    },
+    "rollback": {
+      "icon": "rollback"
+    },
+    "pin": {
+      "icon": "pin"
+    },
+    "version": {
+      "icon": "version"
+    },
+    "logs": {
+      "icon": "logs"
+    },
+    "backup": {
+      "icon": "backup"
+    },
+    "env": {
+      "icon": "env"
+    },
+    "updates": {
+      "icon": "download"
+    },
+    "shield": {
+      "icon": "shield"
+    },
+    "doctor": {
+      "icon": "doctor"
+    },
+    "cpu": {
+      "icon": "cpu"
+    },
+    "ram": {
+      "icon": "ram"
+    },
+    "network": {
+      "icon": "activity"
+    },
+    "healthy": {
+      "icon": "circle-check"
+    },
+    "stacks": {
+      "icon": "layers"
+    },
+    "jobs": {
+      "icon": "jobs"
+    },
+    "admins": {
+      "icon": "users"
+    },
+    "overview": {
+      "icon": "layout-grid"
+    },
+    "graph": {
+      "icon": "graph"
+    },
+    "list": {
+      "icon": "list"
+    },
+    "copy": {
+      "icon": "copy"
+    },
+    "search": {
+      "icon": "search"
+    },
+    "signout": {
+      "icon": "log-out"
+    },
+    "add": {
+      "icon": "plus"
+    },
+    "close": {
+      "icon": "x"
+    },
+    "fit": {
+      "icon": "fit-screen"
+    },
+    "zoom-in": {
+      "icon": "zoom-in"
+    },
+    "zoom-out": {
+      "icon": "zoom-out"
+    },
+    "reset": {
+      "icon": "rotate-ccw"
+    },
+    "reveal": {
+      "icon": "eye"
+    },
+    "hide": {
+      "icon": "eye-off"
+    },
+    "lock": {
+      "icon": "lock"
+    },
+    "external-link": {
+      "icon": "external-link"
+    },
+    "globe": {
+      "icon": "globe"
+    },
+    "cloud": {
+      "icon": "cloud"
+    },
+    "server": {
+      "icon": "server"
+    },
+    "proxy": {
+      "icon": "proxy"
+    },
+    "container": {
+      "icon": "container"
+    },
+    "database": {
+      "icon": "database"
+    },
+    "cache": {
+      "icon": "cache"
+    },
+    "queue": {
+      "icon": "queue"
+    },
+    "bucket": {
+      "icon": "bucket"
+    },
+    "registry": {
+      "icon": "registry"
+    },
+    "node": {
+      "icon": "nodejs"
+    },
+    "go": {
+      "icon": "go"
+    },
+    "rust": {
+      "icon": "rust"
+    },
+    "terminal": {
+      "icon": "terminal"
+    }
+  }
+}

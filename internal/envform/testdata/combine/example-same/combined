@@ -1,0 +1,43 @@
+# Example App — the settings this stack reads.
+#
+# Copy to .env and fill it in. Never commit .env.
+
+# ---- image -------------------------------------------------------------------
+# Lower-case registry account.
+REGISTRY=ghcr.io/example-org/example-app
+# 'latest' is the newest; pin a version (1.2.3) to stay on it.
+WEB_TAG=1.4.0
+API_TAG=2.0.1
+
+# ---- domains -----------------------------------------------------------------
+# The app's own hostname.
+APP_HOST=app.example.com
+# Optional: a second hostname for previews.
+# PREVIEW_HOST=preview.example.test
+
+# ---- database ----------------------------------------------------------------
+DB_USER=app
+DB_PASSWORD=s3cret
+DB_NAME=app
+
+# ---- secrets -----------------------------------------------------------------
+# openssl rand -hex 32
+SESSION_SECRET=0123456789abcdef
+# A quoted value with spaces and a hash inside.
+GREETING="hello # not a comment"
+SINGLE='a b c'
+
+# ---- knobs -------------------------------------------------------------------
+# Prose, not variables — two or more spaces after the #:
+#   LOG_FORMAT=PRETTY   LOG_COLOR=ansi
+#  INDENTED=prose
+# LOG_LEVEL=info
+#LOG_COLOR=auto
+# MAIL_PORT=587          # 465 with TLS
+# MAIL_HOST=
+
+# ---- duplicated on purpose -----------------------------------------------------
+WORKERS=4
+WORKERS=4
+FEATURE_X=off
+FEATURE_X=off

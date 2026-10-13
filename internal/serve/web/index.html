@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>runsnip</title>
+<link rel="stylesheet" href="/app.css">
+<script src="/app.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <a href="#/" class="logo"><span class="brand">runsnip</span> <span id="host" class="muted"></span></a>
+  <nav id="nav" hidden><a href="#/"><svg class="icon" aria-hidden="true"><use href="#i-stacks"/></svg>Stacks</a><a href="#/jobs"><svg class="icon" aria-hidden="true"><use href="#i-jobs"/></svg>Jobs</a><a href="#/admins"><svg class="icon" aria-hidden="true"><use href="#i-admins"/></svg>Admins</a><a href="#/updates"><svg class="icon" aria-hidden="true"><use href="#i-updates"/></svg>Updates</a><button id="signout" type="button" class="link"><svg class="icon" aria-hidden="true"><use href="#i-signout"/></svg>Sign out</button></nav>
+</header>
+<main id="main"><p class="muted">Loading…</p></main>
+<dialog id="reauth"><form method="dialog" id="reauthform"><h3>Confirm it is you</h3><p class="muted">This action changes the server. Use your passkey, or a TOTP code.</p>
+  <div class="row"><button type="button" id="reauthpk" class="primary">Use passkey</button></div>
+  <div class="row"><input id="reauthcode" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" maxlength="6" aria-label="TOTP code"><button type="button" id="reauthtotp">Confirm code</button></div>
+  <p id="reautherr" class="bad"></p><div class="row"><button value="cancel">Cancel</button></div></form></dialog>
+<dialog id="ask"><form method="dialog"><p id="asktext"></p><div class="row"><button value="cancel">Cancel</button><button id="askok" value="ok" class="primary">Run</button></div></form></dialog>
+<div id="overlay" class="overlay" hidden><div class="panel"><h2 id="overlaytitle">runsnip is restarting…</h2><p id="overlaytext" class="muted"></p><div class="row" id="overlayact"></div></div></div>
+</body>
+</html>

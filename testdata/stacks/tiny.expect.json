@@ -1,0 +1,5 @@
+{
+  "nodes": {"host:shop.example.com": "host", "svc:caddy": "proxy", "svc:web": "app", "svc:db": "data", "ext:example.net": "external", "reg:ghcr.io": "registry"},
+  "edges": [["host:shop.example.com", "svc:caddy", "route"], ["svc:caddy", "svc:web", "route"], ["svc:web", "svc:db", "data"], ["svc:web", "svc:db", "depends"], ["svc:web", "ext:example.net", "calls"]],
+  "allowGaps": ["release", "binaries"]
+}

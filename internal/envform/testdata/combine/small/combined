@@ -1,0 +1,19 @@
+# Example App — header text
+
+# ---- image -------------------------------------------------------------------
+# Lower-case registry account.
+REGISTRY=
+WEB_TAG=
+
+# ---- secrets -----------------------------------------------------------------
+# Signs sessions.
+# Changing it signs everyone out.
+SESSION_SECRET=s
+BUCKET=
+# STORE_ENDPOINT=https://default.example
+# MAIL_SECURE=false          # true for port 465
+API_PUBLIC_KEY=
+
+# ---- only in the old .env, the example does not name them -------------------
+# Kept so nothing is lost. Still used? If not, delete them.
+ZZ=1

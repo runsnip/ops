@@ -1,0 +1,16 @@
+# the old file's own comments go away
+export REGISTRY=registry.example.net/team/example-app
+WEB_TAG=1.2.0
+WEB_TAG=1.3.0
+  API_TAG=2.0.0
+APP_HOST=app.example.com
+PREVIEW_HOST=preview.example.com
+# LOG_LEVEL=debug
+LOG_COLOR=ansi
+DB_PASSWORD=pa=ss
+SESSION_SECRET=abc
+# MAIL_HOST=smtp.example.net
+GREETING='single quoted'
+ONLY_IN_ENV=1
+# OLD_SWITCH=yes
+ANOTHER_OLD='a b' # kept

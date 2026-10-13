@@ -1,0 +1,5 @@
+# Build output: binaries are built by the projects' publish scripts into their infra branches, never committed here.
+/dist/
+/bin/
+/runsnip
+*.test

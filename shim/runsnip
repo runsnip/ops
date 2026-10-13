@@ -1,0 +1,17 @@
+#!/bin/sh
+# runsnip — this stack's operations tool (source: github.com/runsnip/ops, the infra/ops submodule of the repository).
+#   runsnip                 dashboard with tabs (overview, services, versions, logs, doctor, security, backups, infra, env)
+#   runsnip help            every command (start, restart, pin, rollback, version, ps, logs, doctor, env, backup…)
+#   sudo ./runsnip install  link /usr/local/bin/runsnip here
+# The server never builds it: scripts/publish-infra.sh builds the Linux binaries into bin/ of the infra branch, and
+# this shim runs the one for this machine. Only sh and uname are needed.
+HERE=$(cd "$(dirname "$(readlink -f "$0")")" && pwd)
+case "$(uname -m)" in
+  x86_64 | amd64) arch=amd64 ;;
+  aarch64 | arm64) arch=arm64 ;;
+  *) echo "runsnip: no binary for $(uname -m) (amd64 and arm64 are shipped)" >&2; exit 1 ;;
+esac
+os=$(uname -s | tr '[:upper:]' '[:lower:]')
+bin="$HERE/bin/runsnip-$os-$arch"
+[ -x "$bin" ] || { echo "runsnip: $bin missing — the infra branch ships it (scripts/publish-infra.sh), then: git pull" >&2; exit 1; }
+RUNSNIP_HOME="${RUNSNIP_HOME:-$HERE}" exec "$bin" "$@"

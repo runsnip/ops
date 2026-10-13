@@ -1,0 +1,15 @@
+# Example App — header text
+
+# ---- image -------------------------------------------------------------------
+# Lower-case registry account.
+REGISTRY=ghcr.io/example-org/example-app
+WEB_TAG=latest
+
+# ---- secrets -----------------------------------------------------------------
+# Signs sessions.
+# Changing it signs everyone out.
+SESSION_SECRET=
+# BUCKET=
+# STORE_ENDPOINT=https://default.example
+# MAIL_SECURE=false          # true for port 465
+API_PUBLIC_KEY=

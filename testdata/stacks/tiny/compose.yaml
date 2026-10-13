@@ -1,0 +1,41 @@
+name: tiny
+x-logging: &logging
+  driver: json-file
+  options: { max-size: 10m, max-file: "3" }
+services:
+  caddy:
+    image: caddy:2-alpine
+    logging: *logging
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on: [web]
+    networks: [edge]
+    healthcheck: { test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"] }
+  web:
+    image: ghcr.io/acme/web:${WEB_TAG:-latest}
+    logging: *logging
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      MAIL_API: https://api.mailer.example.net/v3
+    depends_on: [db]
+    networks: [edge, data]
+    healthcheck: { test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:3000/health"] }
+  db:
+    image: postgres:16-alpine
+    logging: *logging
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ${DATA_DIR:-/srv/tiny}/pgdata:/var/lib/postgresql/data
+    networks: [data]
+    healthcheck: { test: ["CMD", "pg_isready"] }
+networks:
+  edge: {}
+  data: {}

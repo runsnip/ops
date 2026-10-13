@@ -1,0 +1,1224 @@
+{
+  "$id": "https://github.com/runsnip/ops/schema/stack.v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "backup": {
+      "additionalProperties": false,
+      "description": "Backup targets (default: pg_dump of the postgres service), folder and retention.",
+      "properties": {
+        "dir": {
+          "type": "string"
+        },
+        "keep": {
+          "type": "string"
+        },
+        "legacy": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "targets": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "cmd": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "db": {
+                "type": "string"
+              },
+              "ext": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "save": {
+                "type": "boolean"
+              },
+              "service": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "pg_dump",
+                  "pg_dumpall",
+                  "exec"
+                ],
+                "type": "string"
+              },
+              "user": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "components": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "type": "string"
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "only": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "previous": {
+          "enum": [
+            "env",
+            "file"
+          ],
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "compose": {
+      "description": "The compose file, relative to the stack folder (default: docker compose's own names).",
+      "type": "string"
+    },
+    "data_dir": {
+      "description": "Where data lives (default ${DATA_DIR:-/srv/\u003ccompose name\u003e}).",
+      "type": "string"
+    },
+    "doctor": {
+      "additionalProperties": false,
+      "description": "The stack's own doctor sections (typed checks), and standard sections to skip.",
+      "properties": {
+        "sections": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "checks": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "absent": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "any": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "base": {
+                      "type": "string"
+                    },
+                    "cases": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "level": {
+                            "enum": [
+                              "pass",
+                              "fail",
+                              "note",
+                              "warn",
+                              "info"
+                            ],
+                            "type": "string"
+                          },
+                          "match": {
+                            "type": "string"
+                          },
+                          "say": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "level",
+                          "match",
+                          "say"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "client": {
+                      "enum": [
+                        "wget",
+                        "node"
+                      ],
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "codes": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "propertyNames": {
+                        "pattern": "^[0-9]+$"
+                      },
+                      "type": "object"
+                    },
+                    "connect_env": {
+                      "type": "string"
+                    },
+                    "contains": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "default_pool": {
+                      "type": "integer"
+                    },
+                    "expect": {
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    },
+                    "factor": {
+                      "type": "number"
+                    },
+                    "fail": {
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "glob": {
+                      "type": "string"
+                    },
+                    "host": {
+                      "type": "string"
+                    },
+                    "hosts": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "host": {
+                            "type": "string"
+                          },
+                          "if": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "host"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "if": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "differs": {
+                          "items": {
+                            "type": "string"
+                          },
+                          "type": "array"
+                        },
+                        "env": {
+                          "type": "string"
+                        },
+                        "profile": {
+                          "type": "string"
+                        },
+                        "running": {
+                          "type": "string"
+                        },
+                        "stopped": {
+                          "type": "string"
+                        },
+                        "unset": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "info": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "env": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "setting": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "env",
+                          "name",
+                          "setting"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "keys": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "left": {
+                      "type": "string"
+                    },
+                    "level": {
+                      "enum": [
+                        "fail",
+                        "note",
+                        "warn",
+                        "info"
+                      ],
+                      "type": "string"
+                    },
+                    "min": {
+                      "type": "integer"
+                    },
+                    "modes": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "none": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    },
+                    "notes": {
+                      "additionalProperties": {
+                        "type": "string"
+                      },
+                      "type": "object"
+                    },
+                    "op": {
+                      "type": "string"
+                    },
+                    "other": {
+                      "type": "string"
+                    },
+                    "others": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "pass": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "type": "string"
+                    },
+                    "pool_env": {
+                      "type": "string"
+                    },
+                    "present": {
+                      "type": "boolean"
+                    },
+                    "probes": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "expect": {
+                            "enum": [
+                              "ok",
+                              "refuse"
+                            ],
+                            "type": "string"
+                          },
+                          "fail": {
+                            "type": "string"
+                          },
+                          "host": {
+                            "type": "string"
+                          },
+                          "if": {
+                            "type": "string"
+                          },
+                          "none": {
+                            "type": "string"
+                          },
+                          "pass": {
+                            "type": "string"
+                          },
+                          "query": {
+                            "type": "string"
+                          },
+                          "unset": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "expect",
+                          "fail",
+                          "host",
+                          "pass"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "proxied": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "query": {
+                      "type": "string"
+                    },
+                    "reads": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "reject": {
+                      "items": {
+                        "type": "integer"
+                      },
+                      "type": "array"
+                    },
+                    "reserve": {
+                      "type": "string"
+                    },
+                    "right": {
+                      "type": "string"
+                    },
+                    "service": {
+                      "type": "string"
+                    },
+                    "services": {
+                      "items": {
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    "skip_env": {
+                      "type": "string"
+                    },
+                    "suffix": {
+                      "type": "string"
+                    },
+                    "tail": {
+                      "type": "integer"
+                    },
+                    "type": {
+                      "enum": [
+                        "ask",
+                        "compare",
+                        "config_fresh",
+                        "containers",
+                        "dns",
+                        "docker",
+                        "env_complete",
+                        "env_differs",
+                        "env_min_len",
+                        "env_mode",
+                        "env_set",
+                        "env_suffix",
+                        "exec",
+                        "file_present",
+                        "health_status",
+                        "hkdf",
+                        "http",
+                        "https_headers",
+                        "info",
+                        "isolated_domains",
+                        "key_pairs",
+                        "kid_pinned",
+                        "log_color",
+                        "logs",
+                        "path_owner",
+                        "pg_budget",
+                        "placeholders",
+                        "registry",
+                        "settings_or_env",
+                        "shield_route",
+                        "sql",
+                        "sysctl",
+                        "versions"
+                      ],
+                      "type": "string"
+                    },
+                    "uid": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "url_env": {
+                      "type": "string"
+                    },
+                    "want": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "if": {
+                "additionalProperties": false,
+                "properties": {
+                  "differs": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "env": {
+                    "type": "string"
+                  },
+                  "profile": {
+                    "type": "string"
+                  },
+                  "running": {
+                    "type": "string"
+                  },
+                  "stopped": {
+                    "type": "string"
+                  },
+                  "unset": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "off": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "checks",
+              "title"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "skip": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "downloads": {
+      "description": "Commands that fetch large files once onto the data disk.",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "default": {
+            "type": "string"
+          },
+          "dir": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "own_dir": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "command",
+          "dir",
+          "file",
+          "items",
+          "url"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "env": {
+      "description": "The env file (default .env).",
+      "type": "string"
+    },
+    "env_example": {
+      "description": "The env example (default .env.example).",
+      "type": "string"
+    },
+    "env_rules": {
+      "additionalProperties": false,
+      "description": "Generated values, values to fill by hand, the placeholder that counts as empty, the secrets pattern.",
+      "properties": {
+        "generate": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "bytes": {
+                "type": "integer"
+              },
+              "from": {
+                "type": "string"
+              },
+              "info": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "keys": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "private": {
+                "type": "string"
+              },
+              "private_suffix": {
+                "type": "string"
+              },
+              "public": {
+                "type": "string"
+              },
+              "public_suffix": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "random_hex",
+                  "random_base64",
+                  "literal",
+                  "hkdf",
+                  "ed25519_pair",
+                  "ed25519_kid_pair"
+                ],
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "manual": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "hint": {
+                "type": "string"
+              },
+              "keys": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "keys",
+              "title"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "secrets": {
+          "type": "string"
+        },
+        "vars": {
+          "additionalProperties": {
+            "additionalProperties": false,
+            "properties": {
+              "bytes": {
+                "type": "integer"
+              },
+              "enum": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "help": {
+                "type": "string"
+              },
+              "min": {
+                "type": "integer"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "type": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "graph": {
+      "additionalProperties": false,
+      "properties": {
+        "accent": {
+          "type": "string"
+        },
+        "datastores": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ignore": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "infra": {
+      "additionalProperties": false,
+      "description": "The infra branch the server checks out, and what to say when a file changes.",
+      "properties": {
+        "branch": {
+          "type": "string"
+        },
+        "hints": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "match": {
+                "type": "string"
+              },
+              "say": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "match",
+              "say"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "remote": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "init": {
+      "additionalProperties": false,
+      "description": "What `runsnip init` checks and creates: required variables, isolated domains, data folders, notes.",
+      "properties": {
+        "dirs": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "owner": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "why": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "isolated": {
+          "additionalProperties": false,
+          "properties": {
+            "base": {
+              "type": "string"
+            },
+            "others": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "base",
+            "others"
+          ],
+          "type": "object"
+        },
+        "notes": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "if": {
+                "additionalProperties": false,
+                "properties": {
+                  "differs": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "env": {
+                    "type": "string"
+                  },
+                  "profile": {
+                    "type": "string"
+                  },
+                  "running": {
+                    "type": "string"
+                  },
+                  "stopped": {
+                    "type": "string"
+                  },
+                  "unset": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "require": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "name": {
+      "description": "The stack's name in messages (default: compose's name).",
+      "type": "string"
+    },
+    "postgres": {
+      "additionalProperties": false,
+      "description": "The database for psql, backups and the connection budget (default: the service running a postgres image).",
+      "properties": {
+        "db": {
+          "type": "string"
+        },
+        "pool_env": {
+          "type": "string"
+        },
+        "reserve": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        },
+        "url_env": {
+          "type": "string"
+        },
+        "user": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "profiles": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Profiles and the .env variables that turn them on, instead of the compose block.",
+      "type": "object"
+    },
+    "profiles_block": {
+      "description": "The compose block naming each profile's switch (default x-runsnip-profiles).",
+      "type": "string"
+    },
+    "proxies": {
+      "description": "The services recreated by reload and start (default: the services running caddy, nginx, traefik, haproxy or envoy).",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "registry": {
+      "additionalProperties": false,
+      "properties": {
+        "host": {
+          "type": "string"
+        },
+        "user_env": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "release": {
+      "additionalProperties": false,
+      "description": "The build machine's side: scripts, components, version files, paths, tag and branch patterns.",
+      "properties": {
+        "build": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "components": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "deploy_branch": {
+          "type": "string"
+        },
+        "dry_run_flag": {
+          "type": "string"
+        },
+        "infra_commit": {
+          "type": "string"
+        },
+        "infra_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "list": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "main": {
+          "type": "string"
+        },
+        "paths": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "match": {
+                "type": "string"
+              },
+              "paths": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "match"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "progress": {
+          "additionalProperties": false,
+          "properties": {
+            "building": {
+              "type": "string"
+            },
+            "pushed": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "publish_infra": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "remote": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "verify": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "version_files": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "match": {
+                "type": "string"
+              },
+              "paths": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "match"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "serve": {
+      "additionalProperties": false,
+      "description": "The optional web dashboard.",
+      "properties": {
+        "listen": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "services": {
+      "additionalProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "before": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "graph": {
+            "additionalProperties": false,
+            "properties": {
+              "group": {
+                "type": "string"
+              },
+              "hide": {
+                "type": "boolean"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string"
+              },
+              "layer": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "health": {
+            "additionalProperties": false,
+            "properties": {
+              "cmd": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "image": {
+                "type": "boolean"
+              },
+              "none": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "port": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "description": "Per-service overrides of the standard: health endpoint, services recreated before it.",
+      "type": "object"
+    },
+    "shield": {
+      "additionalProperties": false,
+      "description": "How Caddy reaches the request shield: the .env switch, its default, the address variable and its default, the proxy.",
+      "properties": {
+        "addr": {
+          "type": "string"
+        },
+        "addr_env": {
+          "type": "string"
+        },
+        "check_path": {
+          "type": "string"
+        },
+        "copy_headers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "proxy": {
+          "type": "string"
+        },
+        "switch": {
+          "type": "string"
+        },
+        "switch_default": {
+          "enum": [
+            "on",
+            "off"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "addr"
+      ],
+      "type": "object"
+    },
+    "standard": {
+      "description": "The version of the runsnip stack standard this stack follows (1).",
+      "type": "integer"
+    },
+    "start": {
+      "additionalProperties": false,
+      "description": "What `runsnip start` does: git pull, pull, the order services come up in, which are recreated, prune.",
+      "properties": {
+        "check_images": {
+          "type": "boolean"
+        },
+        "git_pull": {
+          "type": "boolean"
+        },
+        "order": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": "array"
+        },
+        "prune": {
+          "type": "boolean"
+        },
+        "pull": {
+          "type": "boolean"
+        },
+        "recreate": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "standard"
+  ],
+  "title": "runsnip stack definition (stack standard v1)",
+  "type": "object"
+}

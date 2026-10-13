@@ -1,0 +1,12 @@
+REGISTRY=ghcr.io/example-org/example-app
+WEB_TAG=1.4.0
+API_TAG=2.0.1
+APP_HOST=app.example.com
+DB_USER=app
+DB_PASSWORD=s3cret
+DB_NAME=app
+SESSION_SECRET=0123456789abcdef
+GREETING="hello # not a comment"
+SINGLE='a b c'
+WORKERS=4
+FEATURE_X=off
